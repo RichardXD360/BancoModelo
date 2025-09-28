@@ -18,20 +18,40 @@ namespace ExtratoBanco.Controllers
         [HttpGet("/")]
         public ActionResult Get()
         {
+            _bancoVerify.AbrirConexao();
             return Ok("Working...");
         }
 
         [HttpPost("/CriarUsuario")]
         public ActionResult CriarUsuario(UsuarioDTC usuario) {
-            ResultadoRetorno retorno = _bancoVerify.CriarUsuario(usuario);
-            return Ok(retorno);
+            ResultadoRetornoHTTP retorno = _bancoVerify.CriarUsuario(usuario);
+            return StatusCode(retorno.StatusCode, new
+            {
+                Mensagem = retorno.Mensagem,
+                Sucesso = retorno.Sucesso,
+            });
         }
 
         [HttpPost("/BuscarDados")]
-        public ActionResult DB(UsuarioDTC usuario) {
+        public ActionResult BuscarDados(UsuarioDTC usuario) {
 
-            ResultadoRetorno retorno = _bancoVerify.ValidarUsuario(usuario); //Desejo utiliza-lo aqui
-            return Ok(retorno);
+            ResultadoRetornoHTTP retorno = _bancoVerify.ValidarUsuario(usuario);
+            return StatusCode(retorno.StatusCode, new
+            {
+                Mensagem = retorno.Mensagem,
+                Sucesso  = retorno.Sucesso,
+            });
+        }
+
+        [HttpPost("/EfetuarTransacao")]
+        public ActionResult EfetuarTransacao(TransacaoDTO transacao)
+        {
+            ResultadoRetornoHTTP retorno = _bancoVerify.EfetuarTransacao(transacao);
+            return StatusCode(retorno.StatusCode, new
+            {
+                Mensagem = retorno.Mensagem,
+                Sucesso = retorno.Sucesso,
+            });
         }
 
         [HttpPost("/VerificarExtrato")]

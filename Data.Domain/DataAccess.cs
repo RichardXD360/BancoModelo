@@ -38,6 +38,35 @@ namespace Data.Domain
                 ON DELETE SET NULL)";
                 cmdCreateTableUsuarioSaldo.ExecuteNonQuery();
 
+                var cmdCreateTableTransacao = conn.CreateCommand();
+                cmdCreateTableTransacao.CommandText = @"CREATE TABLE IF NOT EXISTS TRANSACAO (
+                ID INTEGER PRIMARY KEY AUTOINCREMENT, 
+                DESCRICAO VARCHAR(3200),
+                VALOR REAL, 
+                USUARIOID INTEGER, 
+                USUARIORECEBEDORID INTEGER,
+                DATATRANSACAO DATETIME,
+                TIPOTRANSACAOID INTEGER,
+                FOREIGN KEY (USUARIOID) REFERENCES USUARIO(ID)
+                ON DELETE SET NULL
+                FOREIGN KEY (USUARIORECEBEDORID) REFERENCES USUARIO(ID)
+                ON DELETE SET NULL)";
+                cmdCreateTableTransacao.ExecuteNonQuery();
+
+                var cmdCreateTableTipoTransacao = conn.CreateCommand();
+                cmdCreateTableTipoTransacao.CommandText = @"CREATE TABLE IF NOT EXISTS TIPOTRANSACAO (
+                ID INTEGER PRIMARY KEY AUTOINCREMENT, 
+                DESCRICAO VARCHAR(3200))";
+                cmdCreateTableTipoTransacao.ExecuteNonQuery();
+
+                var cmdInsertTableTipoTransacao = conn.CreateCommand();
+                cmdInsertTableTipoTransacao.CommandText = @"
+                INSERT INTO TIPOTRANSACAO (DESCRICAO) VALUES ('DEBITO');
+                INSERT INTO TIPOTRANSACAO (DESCRICAO) VALUES ('CREDITO');
+                INSERT INTO TIPOTRANSACAO (DESCRICAO) VALUES ('PIX');
+                INSERT INTO TIPOTRANSACAO (DESCRICAO) VALUES ('TRANFERENCIA');";
+                cmdInsertTableTipoTransacao.ExecuteNonQuery();
+
                 /*
                 var cmdInsertAgenciaPadrao = conn.CreateCommand();
                 cmdInsertAgenciaPadrao.CommandText = @"
@@ -105,7 +134,62 @@ namespace Data.Domain
             }
             return resultadoRetorno;
         }
+        public ResultadoRetorno VerificarUsuarioId(int usuarioId)
+        {
+            ResultadoRetorno resultadoRetorno = new ResultadoRetorno();
+            try
+            {
+                bool isValido = false;
 
+                using var conn = new SqliteConnection(connectionString);
+                conn.Open();
+
+                using var cmdVerificarUsuario = conn.CreateCommand();
+                cmdVerificarUsuario.CommandText = @"
+                SELECT ID
+                FROM USUARIO
+                WHERE ID = @id";
+                cmdVerificarUsuario.Parameters.AddWithValue("@id", usuarioId);
+
+                using var reader = cmdVerificarUsuario.ExecuteReader();
+                while (reader.Read())
+                {
+                    var id = reader.GetString(0);
+                    if (!string.IsNullOrWhiteSpace(id))
+                    {
+                        isValido = true;
+                    }
+                    ;
+                }
+                ;
+                if (isValido)
+                {
+                    resultadoRetorno.Mensagem = "Usuário Válido";
+                }
+                else
+                {
+                    resultadoRetorno.Mensagem = "Usuário Inválido";
+                }
+                resultadoRetorno.Sucesso = isValido;
+                return resultadoRetorno;
+            }
+            catch (SqliteException ex)
+            {
+                resultadoRetorno.Sucesso = false;
+                resultadoRetorno.Mensagem = $"Erro de Banco de Dados: {ex}";
+            }
+            catch (ArgumentNullException ex)
+            {
+                resultadoRetorno.Sucesso = false;
+                resultadoRetorno.Mensagem = $"Erro: {ex.ParamName} - {ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                resultadoRetorno.Sucesso = false;
+                resultadoRetorno.Mensagem = $"Erro: {ex.Message}";
+            }
+            return resultadoRetorno;
+        }
         public ResultadoRetorno CriarUsuario(UsuarioDTC usuario)
         {
             ResultadoRetorno retorno = new ResultadoRetorno();
@@ -169,6 +253,88 @@ namespace Data.Domain
             }
             
             return retorno;
+        }
+        public ResultadoRetorno EfetuarTransacao(TransacaoDTO transacao)
+        {
+            ResultadoRetorno retorno = new ResultadoRetorno();
+            retorno.Sucesso = false;
+            try
+            {
+                using var conn = new SqliteConnection(connectionString);
+                conn.Open();
+                using var transaction = conn.BeginTransaction();
+                using var cmdInsertTableTransacao = conn.CreateCommand();
+                cmdInsertTableTransacao.CommandText = @"
+                INSERT INTO TRANSACAO (DESCRICAO, VALOR, USUARIOID, USUARIORECEBEDORID, TIPOTRANSACAOID, DATATRANSACAO)
+                VALUES (@descricao, @valor, @usuarioid, @usuariorecebedorid, @tipotransacaoid, @datatransacao)";
+                cmdInsertTableTransacao.Transaction = transaction;
+                cmdInsertTableTransacao.Parameters.AddWithValue("@descricao", transacao.Descricao);
+                cmdInsertTableTransacao.Parameters.AddWithValue("@valor", transacao.Valor);
+                cmdInsertTableTransacao.Parameters.AddWithValue("@usuarioid", transacao.UsuarioId);
+                cmdInsertTableTransacao.Parameters.AddWithValue("@usuariorecebedorid", transacao.UsuarioRecebedorId);
+                cmdInsertTableTransacao.Parameters.AddWithValue("@tipotransacaoid", transacao.TipoTransacao);
+                cmdInsertTableTransacao.Parameters.AddWithValue("@datatransacao", transacao.DataTransacao);
+                cmdInsertTableTransacao.ExecuteNonQuery();
+
+                using var cmdUpdateTableUsuarioSaldo = conn.CreateCommand();
+                cmdUpdateTableUsuarioSaldo.CommandText = $@"
+                UPDATE USUARIO_SALDO
+                SET SALDO = SALDO - @valor, DATAULTIMATRANSACAO = DATETIME('now')
+                WHERE USUARIOID = @usuarioid";
+                cmdUpdateTableUsuarioSaldo.Transaction = transaction;
+                cmdUpdateTableUsuarioSaldo.Parameters.AddWithValue("@valor", transacao.Valor);
+                cmdUpdateTableUsuarioSaldo.Parameters.AddWithValue("@usuarioid", transacao.UsuarioId);
+                cmdUpdateTableUsuarioSaldo.ExecuteNonQuery();
+
+                using var cmdUpdateTableUsuarioRecebedorSaldo = conn.CreateCommand();
+                cmdUpdateTableUsuarioRecebedorSaldo.CommandText = $@"
+                UPDATE USUARIO_SALDO
+                SET SALDO = SALDO + @valor, DATAULTIMATRANSACAO = DATETIME('now')
+                WHERE USUARIOID = @usuarioid";
+                cmdUpdateTableUsuarioRecebedorSaldo.Transaction = transaction;
+                cmdUpdateTableUsuarioRecebedorSaldo.Parameters.AddWithValue("@valor", transacao.Valor);
+                cmdUpdateTableUsuarioRecebedorSaldo.Parameters.AddWithValue("@usuarioid", transacao.UsuarioRecebedorId);
+                cmdUpdateTableUsuarioRecebedorSaldo.ExecuteNonQuery();
+
+                transaction.Commit();
+
+                retorno.Mensagem = "Sucesso ao efetuar transacao";
+                retorno.Sucesso = true;
+                return retorno;
+            }
+            catch(SqliteException ex)
+            {
+                retorno.Mensagem = $"Erro de banco de dados: {ex}";
+            }
+            catch(Exception ex)
+            {
+                retorno.Mensagem = $"Erro: {ex}";
+            }
+            return retorno;
+        }
+        public int VerificarSaldo(int usuarioId)
+        {
+            try
+            {
+                using var conn = new SqliteConnection(connectionString);
+                conn.Open();
+                using var cmdSelectVerificarSaldo = conn.CreateCommand();
+                cmdSelectVerificarSaldo.CommandText = @"
+                SELECT SALDO
+                FROM USUARIO_SALDO
+                WHERE USUARIOID = @usuarioid";
+                cmdSelectVerificarSaldo.Parameters.AddWithValue("@usuarioid", usuarioId);
+                using var reader = cmdSelectVerificarSaldo.ExecuteReader();
+                int saldo = 0;
+                while (reader.Read()) {
+                    saldo = reader.GetInt32(0);
+                }
+                return saldo;
+            }
+            catch
+            {
+                return 0;
+            }
         }
     }
 }
