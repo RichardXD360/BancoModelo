@@ -32,7 +32,7 @@ namespace ExtratoBanco.Controllers
             });
         }
 
-        [HttpPost("/BuscarDados")]
+        [HttpPost("/VerificarUsuario")]
         public ActionResult BuscarDados(UsuarioDTC usuario) {
 
             ResultadoRetornoHTTP retorno = _bancoVerify.ValidarUsuario(usuario);

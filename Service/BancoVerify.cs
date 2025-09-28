@@ -26,6 +26,35 @@ namespace Service
                     StatusCode = 400
                 };
             }
+            if(transacao.TipoTransacao > EnumTipoTransacao.Tranferencia)
+            {
+                return new ResultadoRetornoHTTP
+                {
+                    Mensagem = "Tipo Transação inválida ou inexistente, verifique os dados enviados",
+                    Sucesso = false,
+                    StatusCode = 404
+                };
+            }
+            ResultadoRetorno validarUsuario = _data.VerificarUsuarioId(transacao.UsuarioId);
+            if (validarUsuario.Sucesso == false)
+            {
+                return new ResultadoRetornoHTTP
+                {
+                    Mensagem = "Usuario não encontrado.",
+                    Sucesso = false,
+                    StatusCode = 404
+                };
+            }
+            ResultadoRetorno validarUsuarioRecebedor = _data.VerificarUsuarioId(transacao.UsuarioRecebedorId);
+            if (validarUsuarioRecebedor.Sucesso == false)
+            {
+                return new ResultadoRetornoHTTP
+                {
+                    Mensagem = "Usuario recebedor não encontrado.",
+                    Sucesso = false,
+                    StatusCode = 404
+                };
+            }
             int saldoUsuario = _data.VerificarSaldo(transacao.UsuarioId);
             if(saldoUsuario < transacao.Valor)
             {
@@ -34,15 +63,6 @@ namespace Service
                     Mensagem = "Saldo insuficiente.",
                     Sucesso = false,
                     StatusCode = 409
-                };
-            }
-            ResultadoRetorno usuarioRecebedor = _data.VerificarUsuarioId(transacao.UsuarioRecebedorId);
-            if (usuarioRecebedor.Sucesso == false) {
-                return new ResultadoRetornoHTTP
-                {
-                    Mensagem = "Usuario recebedor não encontrado.",
-                    Sucesso = false,
-                    StatusCode = 404
                 };
             }
             ResultadoRetorno retorno = _data.EfetuarTransacao(transacao);
@@ -65,6 +85,15 @@ namespace Service
                 };
             }
             resultadoRetorno = _data.VerificarUsuario(usuario);
+            if (!resultadoRetorno.Sucesso)
+            {
+                return new ResultadoRetornoHTTP
+                {
+                    Mensagem = resultadoRetorno.Mensagem,
+                    Sucesso = resultadoRetorno.Sucesso,
+                    StatusCode = 404
+                };
+            }
             return new ResultadoRetornoHTTP
             {
                 Mensagem = resultadoRetorno.Mensagem,
