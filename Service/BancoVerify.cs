@@ -13,12 +13,14 @@ namespace Service
 
         ResultadoRetorno resultadoRetorno = new ResultadoRetorno();
 
-        public void AbrirConexao() {
+        public void AbrirConexao()
+        {
             _data.AbrirConexao();
         }
         public ResultadoRetornoHTTP EfetuarTransacao(TransacaoDTO transacao)
         {
-            if (transacao == null || transacao.Valor == 0 || transacao.DataTransacao == null) {
+            if (transacao == null || transacao.Valor == 0 || transacao.DataTransacao == null)
+            {
                 return new ResultadoRetornoHTTP
                 {
                     Mensagem = "Transação inválida ou nula, verifique os dados enviados",
@@ -26,7 +28,7 @@ namespace Service
                     StatusCode = 400
                 };
             }
-            if(transacao.TipoTransacao > EnumTipoTransacao.Tranferencia)
+            if (transacao.TipoTransacao > EnumTipoTransacao.Tranferencia)
             {
                 return new ResultadoRetornoHTTP
                 {
@@ -56,7 +58,7 @@ namespace Service
                 };
             }
             int saldoUsuario = _data.VerificarSaldo(transacao.UsuarioId);
-            if(saldoUsuario < transacao.Valor)
+            if (saldoUsuario < transacao.Valor)
             {
                 return new ResultadoRetornoHTTP
                 {
@@ -114,7 +116,8 @@ namespace Service
                     StatusCode = 409
                 };
             }
-            if(usuario.Nome.Length <= 7 || usuario.Nome.Length >= 33){
+            if (usuario.Nome.Length <= 7 || usuario.Nome.Length >= 33)
+            {
                 return new ResultadoRetornoHTTP
                 {
                     Sucesso = false,
@@ -129,6 +132,21 @@ namespace Service
                 Sucesso = resultadoRetorno.Sucesso,
                 StatusCode = 201
             };
+        }
+
+        public DadosUsuario DetalhesUsuario(int usuarioId)
+        {
+            var validarUsuario = _data.VerificarUsuarioId(usuarioId);
+            if (validarUsuario.Sucesso = false)
+            {
+                return new DadosUsuario
+                {
+                    Nome = "Usuário inexistente na base de dados",
+                    Saldo = 404
+                };
+            }
+            DadosUsuario retorno = _data.DetalhesUsuario(usuarioId);
+            return retorno;
         }
     }
 }

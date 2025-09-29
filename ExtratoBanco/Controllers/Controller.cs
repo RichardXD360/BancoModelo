@@ -43,6 +43,23 @@ namespace ExtratoBanco.Controllers
             });
         }
 
+        [HttpGet("/DetalhesUsuario/{id}")]
+        public ActionResult DetalhesUsuario(int id)
+        {
+            DadosUsuario retorno = _bancoVerify.DetalhesUsuario(id);
+            if(retorno.Saldo == 404)
+            {
+                return StatusCode(retorno.Saldo, new
+                {
+                    Mensagem = retorno.Nome
+                });
+            }
+            return StatusCode(200, new
+            {
+                DetalhesUsuario = retorno,
+            });
+        }
+
         [HttpPost("/EfetuarTransacao")]
         public ActionResult EfetuarTransacao(TransacaoDTO transacao)
         {

@@ -176,7 +176,7 @@ namespace Data.Domain
             catch (SqliteException ex)
             {
                 resultadoRetorno.Sucesso = false;
-                resultadoRetorno.Mensagem = $"Erro de Banco de Dados: {ex}";
+                resultadoRetorno.Mensagem = $"Erro de Banco de Dados: {ex.Message}";
             }
             catch (ArgumentNullException ex)
             {
@@ -304,11 +304,11 @@ namespace Data.Domain
             }
             catch(SqliteException ex)
             {
-                retorno.Mensagem = $"Erro de banco de dados: {ex}";
+                retorno.Mensagem = $"Erro de banco de dados: {ex.Message}";
             }
             catch(Exception ex)
             {
-                retorno.Mensagem = $"Erro: {ex}";
+                retorno.Mensagem = $"Erro: {ex.Message}";
             }
             return retorno;
         }
@@ -335,6 +335,69 @@ namespace Data.Domain
             {
                 return 0;
             }
+        }
+        public DadosUsuario DetalhesUsuario(int usuarioId)
+        {
+            DadosUsuario dadosUsuario = new DadosUsuario();
+            try 
+            {
+                using var conn = new SqliteConnection(connectionString);
+                conn.Open();
+                var transaction = conn.BeginTransaction();
+                using var cmdSelectDetalhesUsuario = conn.CreateCommand();
+                cmdSelectDetalhesUsuario.CommandText = @"
+                SELECT U.NOME, U.CPF , US.SALDO, U.AGENCIAID
+                FROM USUARIO U
+                JOIN USUARIO_SALDO US ON US.USUARIOID = U.ID
+                WHERE U.ID = @id";
+                cmdSelectDetalhesUsuario.Transaction = transaction;
+                cmdSelectDetalhesUsuario.Parameters.AddWithValue("@id", usuarioId);
+                using var reader = cmdSelectDetalhesUsuario.ExecuteReader();
+                while (reader.Read()) {
+                    dadosUsuario.Nome = reader["NOME"].ToString();
+                    dadosUsuario.CPF = reader["CPF"].ToString();
+                    dadosUsuario.Saldo = reader.GetInt32(2);
+                    dadosUsuario.AgenciaId = reader.GetInt32(3);
+                };
+
+                using var cmdSelectDetalhesTransacaoUsuario = conn.CreateCommand();
+                cmdSelectDetalhesTransacaoUsuario.CommandText = @"
+                SELECT DESCRICAO, VALOR, USUARIOID, USUARIORECEBEDORID, TIPOTRANSACAOID, DATATRANSACAO
+                FROM TRANSACAO
+                WHERE USUARIOID = @id";
+                cmdSelectDetalhesTransacaoUsuario.Transaction = transaction;
+                cmdSelectDetalhesTransacaoUsuario.Parameters.AddWithValue("@id", usuarioId);
+                using var reader2 = cmdSelectDetalhesTransacaoUsuario.ExecuteReader();
+                List<TransacaoDTO> transacoes = new List<TransacaoDTO>();
+                while (reader2.Read()) {
+                    transacoes.Add(new TransacaoDTO()
+                    {
+                        Descricao = reader2.GetString(0),
+                        Valor = reader2.GetInt32(1),
+                        UsuarioId = reader2.GetInt32(2),
+                        UsuarioRecebedorId = reader2.GetInt32(3),
+                        TipoTransacao = (EnumTipoTransacao)reader2.GetInt32(4),
+                        DataTransacao = reader2.GetDateTime(5)
+                    });
+                }
+                dadosUsuario.Transacao = transacoes;
+
+                transaction.Commit();
+
+                return dadosUsuario;
+
+            }
+            catch(SqliteException ex)
+            {
+                dadosUsuario.Nome = $"Erro de Banco de dados: {ex.Message}";
+                dadosUsuario.CPF = "Erro";
+            }
+            catch(Exception ex)
+            {
+                dadosUsuario.Nome = $"Erro: {ex.Message}";
+                dadosUsuario.CPF = "Erro";
+            }
+            return dadosUsuario;
         }
     }
 }
