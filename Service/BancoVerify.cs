@@ -17,115 +17,76 @@ namespace Service
         {
             _data.AbrirConexao();
         }
+        private ResultadoRetornoHTTP CriarResultadoRetornoHTTP(string mensagem, bool sucesso, int statusCode)
+        {
+            return new ResultadoRetornoHTTP
+            {
+                Mensagem = mensagem,
+                Sucesso = sucesso,
+                StatusCode = statusCode
+            };
+        }
+        private ResultadoRetornoUsuarioId CriarResultadoRetornoUsuarioId(string mensagem, bool sucesso, int statusCode, int usuarioId)
+        {
+            return new ResultadoRetornoUsuarioId
+            {
+                Mensagem = mensagem,
+                Sucesso = sucesso,
+                StatusCode = statusCode,
+                UsuarioId = usuarioId
+            };
+        }
         public ResultadoRetornoHTTP EfetuarTransacao(TransacaoDTO transacao)
         {
             if (transacao == null || transacao.Valor == 0 || transacao.DataTransacao == null)
             {
-                return new ResultadoRetornoHTTP
-                {
-                    Mensagem = "Transação inválida ou nula, verifique os dados enviados",
-                    Sucesso = false,
-                    StatusCode = 400
-                };
+                return CriarResultadoRetornoHTTP("Transação inválida ou nula, verifique os dados enviados", false, 400);
             };
             if (transacao.TipoTransacao > EnumTipoTransacao.Tranferencia)
             {
-                return new ResultadoRetornoHTTP
-                {
-                    Mensagem = "Tipo Transação inválida ou inexistente, verifique os dados enviados",
-                    Sucesso = false,
-                    StatusCode = 404
-                };
+                return CriarResultadoRetornoHTTP("Tipo Transação inválida ou inexistente, verifique os dados enviados", false, 404);
             };
             ResultadoRetorno validarUsuario = _data.VerificarUsuarioId(transacao.UsuarioId);
             if (validarUsuario.Sucesso == false)
             {
-                return new ResultadoRetornoHTTP
-                {
-                    Mensagem = "Usuario não encontrado.",
-                    Sucesso = false,
-                    StatusCode = 404
-                };
+                return CriarResultadoRetornoHTTP("Usuario não encontrado", false, 404);
             };
             int validarUsuarioRecebedorCnpj = _data.VerificarUsuarioCnpj(transacao.UsuarioRecebedorCnpj);
 
             if(validarUsuarioRecebedorCnpj == transacao.UsuarioId)
             {
-                return new ResultadoRetornoHTTP
-                {
-                    Mensagem = "Usuario recebedor não pode ser você.",
-                    Sucesso = false,
-                    StatusCode = 400
-                };
+                return CriarResultadoRetornoHTTP("Usuario recebedor não pode ser você.", false, 400);
             };
 
             if(validarUsuarioRecebedorCnpj == 0)
             {
-                return new ResultadoRetornoHTTP
-                {
-                    Mensagem = "Usuario recebedor não encontrado.",
-                    Sucesso = false,
-                    StatusCode = 404
-                };
+                return CriarResultadoRetornoHTTP("Usuario recebedor não encontrado.", false, 404);
             };
             ResultadoRetorno validarUsuarioRecebedor = _data.VerificarUsuarioId(validarUsuarioRecebedorCnpj);
             if (validarUsuarioRecebedor.Sucesso == false)
             {
-                return new ResultadoRetornoHTTP
-                {
-                    Mensagem = "Usuario recebedor não encontrado.",
-                    Sucesso = false,
-                    StatusCode = 404
-                };
+                return CriarResultadoRetornoHTTP("Usuario recebedor não encontrado", false, 400);
             };
             int saldoUsuario = _data.VerificarSaldo(transacao.UsuarioId);
             if (saldoUsuario < transacao.Valor)
             {
-                return new ResultadoRetornoHTTP
-                {
-                    Mensagem = "Saldo insuficiente.",
-                    Sucesso = false,
-                    StatusCode = 409
-                };
+                return CriarResultadoRetornoHTTP("Saldo insuficiente.", false, 409);
             };
             ResultadoRetorno retorno = _data.EfetuarTransacao(transacao, validarUsuarioRecebedorCnpj);
-            return new ResultadoRetornoHTTP
-            {
-                Mensagem = retorno.Mensagem,
-                Sucesso = retorno.Sucesso,
-                StatusCode = 200
-            };
+            return CriarResultadoRetornoHTTP(retorno.Mensagem, retorno.Sucesso, 200);
         }
         public ResultadoRetornoUsuarioId ValidarUsuario(UsuarioLoginDTC usuario)
         {
             if (usuario == null || string.IsNullOrEmpty(usuario.Login))
             {
-                return new ResultadoRetornoUsuarioId
-                {
-                    Mensagem = "Usuario invalido ou vazio",
-                    Sucesso = false,
-                    StatusCode = 401,
-                    UsuarioId = 0
-                };
+                return CriarResultadoRetornoUsuarioId("Usuario invalido ou vazio", false, 401, 0);
             };
             ResultadoRetornoUsuarioId resultadoRetorno = _data.VerificarUsuario(usuario);
             if (!resultadoRetorno.Sucesso)
             {
-                return new ResultadoRetornoUsuarioId
-                {
-                    Mensagem = resultadoRetorno.Mensagem,
-                    Sucesso = resultadoRetorno.Sucesso,
-                    StatusCode = 404,
-                    UsuarioId = 0
-                };
+                return CriarResultadoRetornoUsuarioId(resultadoRetorno.Mensagem, resultadoRetorno.Sucesso, 404, 0);
             };
-            return new ResultadoRetornoUsuarioId
-            {
-                Mensagem = resultadoRetorno.Mensagem,
-                Sucesso = resultadoRetorno.Sucesso,
-                StatusCode = 200,
-                UsuarioId = resultadoRetorno.UsuarioId
-            };
+            return CriarResultadoRetornoUsuarioId(resultadoRetorno.Mensagem, resultadoRetorno.Sucesso, 200, resultadoRetorno.UsuarioId);
         }
         public ResultadoRetornoUsuarioId CriarUsuario(UsuarioDTC usuario)
         {
@@ -136,34 +97,19 @@ namespace Service
             validarUsuarioExistente = ValidarUsuario(usuarioLogin);
             if (validarUsuarioExistente.Sucesso)
             {
-                return new ResultadoRetornoUsuarioId
-                {
-                    Sucesso = false,
-                    Mensagem = "Login de usuário já existente.",
-                    StatusCode = 409
-                };
+                return CriarResultadoRetornoUsuarioId("Login de usuário já existente", false, 409, 0);
             };
             if (usuario.Nome.Length <= 7 || usuario.Nome.Length >= 33)
             {
-                return new ResultadoRetornoUsuarioId
-                {
-                    Sucesso = false,
-                    Mensagem = "Nome de usuário inválido. O nome deve conter entre 8 a 32 caracteres.",
-                    StatusCode = 401
-                };
+                return CriarResultadoRetornoUsuarioId("Nome de usuário inválido. O nome deve conter entre 8 a 32 caracteres.", false, 401, 0);
             };
             resultadoRetorno = _data.CriarUsuario(usuario);
-            return new ResultadoRetornoUsuarioId
-            {
-                Mensagem = resultadoRetorno.Mensagem,
-                Sucesso = resultadoRetorno.Sucesso,
-                StatusCode = 201
-            };
+            return CriarResultadoRetornoUsuarioId(resultadoRetorno.Mensagem, resultadoRetorno.Sucesso, 201, 0);
         }
         public DadosUsuario DetalhesUsuario(int usuarioId)
         {
             var validarUsuario = _data.VerificarUsuarioId(usuarioId);
-            if (validarUsuario.Sucesso = false)
+            if (validarUsuario.Sucesso == false)
             {
                 return new DadosUsuario
                 {
