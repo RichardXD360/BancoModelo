@@ -24,7 +24,7 @@ namespace ExtratoBanco.Controllers
 
         [HttpPost("/CriarUsuario")]
         public ActionResult CriarUsuario(UsuarioDTC usuario) {
-            ResultadoRetornoHTTP retorno = _bancoVerify.CriarUsuario(usuario);
+            ResultadoRetornoUsuarioId retorno = _bancoVerify.CriarUsuario(usuario);
             return StatusCode(retorno.StatusCode, new
             {
                 Mensagem = retorno.Mensagem,
@@ -33,13 +33,14 @@ namespace ExtratoBanco.Controllers
         }
 
         [HttpPost("/VerificarUsuario")]
-        public ActionResult BuscarDados(UsuarioDTC usuario) {
+        public ActionResult BuscarDados(UsuarioLoginDTC usuario) {
 
-            ResultadoRetornoHTTP retorno = _bancoVerify.ValidarUsuario(usuario);
+            ResultadoRetornoUsuarioId retorno = _bancoVerify.ValidarUsuario(usuario);
             return StatusCode(retorno.StatusCode, new
             {
                 Mensagem = retorno.Mensagem,
                 Sucesso  = retorno.Sucesso,
+                UsuarioId = retorno.UsuarioId,
             });
         }
 

@@ -80,9 +80,9 @@ namespace Data.Domain
                 */
             }
         }
-        public ResultadoRetorno VerificarUsuario(UsuarioDTC usuario)
+        public ResultadoRetornoUsuarioId VerificarUsuario(UsuarioLoginDTC usuario)
         {
-            ResultadoRetorno resultadoRetorno = new ResultadoRetorno();
+            ResultadoRetornoUsuarioId resultadoRetorno = new ResultadoRetornoUsuarioId();
             try
             {
                 bool isValido = false;
@@ -103,6 +103,7 @@ namespace Data.Domain
                     var id = reader.GetString(0);
                     if (!string.IsNullOrWhiteSpace(id))
                     {
+                        resultadoRetorno.UsuarioId = reader.GetInt32(0);
                         isValido = true;
                     };
                 };
@@ -155,7 +156,10 @@ namespace Data.Domain
                 while (reader.Read())
                 {
                     var id = reader.GetInt32(0);
-                    return id;
+                    if(id != 0)
+                    {
+                        return id;
+                    }
                 }
                 return 0;
             }

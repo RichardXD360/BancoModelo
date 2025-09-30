@@ -4,7 +4,7 @@ namespace Application
 {
     public interface IData
     {
-        public ResultadoRetorno VerificarUsuario(UsuarioDTC usuario);
+        public ResultadoRetornoUsuarioId VerificarUsuario(UsuarioLoginDTC usuario);
         public ResultadoRetorno VerificarUsuarioId(int usuarioid);
         public DadosUsuario DetalhesUsuario(int usuarioId);
         public ResultadoRetorno CriarUsuario(UsuarioDTC usuario);
