@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Frontend", "Frontend\Frontend.csproj", "{69989134-A46D-49E4-8C2F-EBB192EA9176}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreatePDF", "CreatePDF\CreatePDF.csproj", "{93ABAFC7-D9D2-4016-80D2-4BF914383C50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model.Domain", "Model.Domain\Model.Domain.csproj", "{13841057-631F-431A-A17C-DD778D04A7B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{69989134-A46D-49E4-8C2F-EBB192EA9176}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69989134-A46D-49E4-8C2F-EBB192EA9176}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69989134-A46D-49E4-8C2F-EBB192EA9176}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93ABAFC7-D9D2-4016-80D2-4BF914383C50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93ABAFC7-D9D2-4016-80D2-4BF914383C50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93ABAFC7-D9D2-4016-80D2-4BF914383C50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93ABAFC7-D9D2-4016-80D2-4BF914383C50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13841057-631F-431A-A17C-DD778D04A7B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13841057-631F-431A-A17C-DD778D04A7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13841057-631F-431A-A17C-DD778D04A7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13841057-631F-431A-A17C-DD778D04A7B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

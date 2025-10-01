@@ -45,7 +45,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         if (usuarioId != undefined) {
             window.location.href = "https://localhost:7028/Home/index";
         }
-
     } catch (err) {
         console.error(err);
         messageBox.className = 'text-sm mt-2 text-red-600';

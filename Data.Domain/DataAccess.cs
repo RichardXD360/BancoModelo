@@ -445,5 +445,49 @@ namespace Data.Domain
             }
             return dadosUsuario;
         }
+        public string RetornarNomeUsuario(int usuarioId)
+        {
+            try
+            {
+                using var conn = new SqliteConnection(connectionString);
+                conn.Open();
+
+                using var cmdSelectNomeUsuario = conn.CreateCommand();
+                cmdSelectNomeUsuario.CommandText = @"
+                SELECT NOME
+                FROM USUARIO
+                WHERE ID = @id";
+                cmdSelectNomeUsuario.Parameters.AddWithValue("@id", usuarioId);
+                string? nomeUsuario = Convert.ToString(cmdSelectNomeUsuario.ExecuteScalar());
+
+                return nomeUsuario;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
+        public string RetornarCpfUsuario(int usuarioId)
+        {
+            try
+            {
+                using var conn = new SqliteConnection(connectionString);
+                conn.Open();
+
+                using var cmdSelectCpfUsuario = conn.CreateCommand();
+                cmdSelectCpfUsuario.CommandText = @"
+                SELECT CPF
+                FROM USUARIO
+                WHERE ID = @id";
+                cmdSelectCpfUsuario.Parameters.AddWithValue("@id", usuarioId);
+                string? cpfUsuario = Convert.ToString(cmdSelectCpfUsuario.ExecuteScalar());
+
+                return cpfUsuario;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+        }
     }
 }

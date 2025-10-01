@@ -52,7 +52,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     } catch (err) {
         console.error(err);
         messageBox.className = 'text-sm mt-2 text-red-600';
-        messageBox.textContent = 'Erro ao cadastrar usuário.';
+        messageBox.textContent = `Erro ao cadastrar usuário: ${err.data.Mensagem}`;
     } finally {
         const btn = document.getElementById('btnCadastrar');
         btn.disabled = false;

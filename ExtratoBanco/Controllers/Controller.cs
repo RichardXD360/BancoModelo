@@ -1,5 +1,4 @@
-﻿using Application;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Service;
 using Shared.Models;
 

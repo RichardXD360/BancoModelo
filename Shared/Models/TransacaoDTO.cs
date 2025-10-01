@@ -2,6 +2,7 @@
 
 namespace Shared.Models
 {
+
     public class TransacaoDTO
     {
         public string? Descricao { get; set; }

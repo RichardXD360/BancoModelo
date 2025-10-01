@@ -1,5 +1,6 @@
 using Application;
 using Data.Domain;
+using Model.Domain;
 using Service;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IData, DataAccess>();
 builder.Services.AddScoped<BancoVerify>();
+builder.Services.AddScoped<TransacaoRepo>();
 
 builder.Services.AddCors(cors =>
 {
