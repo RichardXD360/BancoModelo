@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreatePDF", "CreatePDF\Crea
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model.Domain", "Model.Domain\Model.Domain.csproj", "{13841057-631F-431A-A17C-DD778D04A7B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeradorPDF", "GeradorPDF\GeradorPDF.csproj", "{B5977429-A20A-4DB9-A490-D7DBF933B634}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{13841057-631F-431A-A17C-DD778D04A7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13841057-631F-431A-A17C-DD778D04A7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13841057-631F-431A-A17C-DD778D04A7B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5977429-A20A-4DB9-A490-D7DBF933B634}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5977429-A20A-4DB9-A490-D7DBF933B634}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5977429-A20A-4DB9-A490-D7DBF933B634}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5977429-A20A-4DB9-A490-D7DBF933B634}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using GeradorPDF;
+using Microsoft.AspNetCore.Mvc;
 using Service;
 using Shared.Models;
 
@@ -10,9 +11,11 @@ namespace ExtratoBanco.Controllers
     public class Controller: ControllerBase
     {
         private readonly BancoVerify _bancoVerify;
-        public Controller(BancoVerify bancoVerify)
+        private readonly PdfService  _pdf;
+        public Controller(BancoVerify bancoVerify, PdfService pdf)
         {
             _bancoVerify = bancoVerify;
+            _pdf = pdf;
         }
         [HttpGet("/")]
         public ActionResult Get()
@@ -21,7 +24,7 @@ namespace ExtratoBanco.Controllers
             return Ok("Working...");
         }
 
-        [HttpPost("/CriarUsuario")]
+        [HttpPost("/Usuario/CriarUsuario")]
         public ActionResult CriarUsuario(UsuarioDTC usuario) {
             ResultadoRetornoUsuarioId retorno = _bancoVerify.CriarUsuario(usuario);
             return StatusCode(retorno.StatusCode, new
@@ -31,7 +34,7 @@ namespace ExtratoBanco.Controllers
             });
         }
 
-        [HttpPost("/VerificarUsuario")]
+        [HttpPost("/Usuario/VerificarUsuario")]
         public ActionResult BuscarDados(UsuarioLoginDTC usuario) {
 
             ResultadoRetornoUsuarioId retorno = _bancoVerify.ValidarUsuario(usuario);
@@ -43,7 +46,7 @@ namespace ExtratoBanco.Controllers
             });
         }
 
-        [HttpGet("/DetalhesUsuario/{id}")]
+        [HttpGet("/Usuario/DetalhesUsuario/{id}")]
         public ActionResult DetalhesUsuario(int id)
         {
             DadosUsuario retorno = _bancoVerify.DetalhesUsuario(id);
@@ -59,8 +62,7 @@ namespace ExtratoBanco.Controllers
                 DetalhesUsuario = retorno,
             });
         }
-
-        [HttpPost("/EfetuarTransacao")]
+        [HttpPost("/Transacao/EfetuarTransacao")]
         public ActionResult EfetuarTransacao(TransacaoDTO transacao)
         {
             ResultadoRetornoHTTP retorno = _bancoVerify.EfetuarTransacao(transacao);
@@ -70,8 +72,15 @@ namespace ExtratoBanco.Controllers
                 Sucesso = retorno.Sucesso,
             });
         }
+        [HttpGet("/Transacao/{id}/GerarComprovante")]
+        public byte[] GerarComprovante(int id)
+        {
+            TransacaoDTO transacao = _bancoVerify.RetornarTransacao(id);
+            return _pdf.GerarComprovante(transacao);
 
-        [HttpPost("/VerificarExtrato")]
+        }
+
+        [HttpPost("/Transacao/VerificarExtrato")]
         public ActionResult VerificarExtrato(string cpf, DateTime dataInicio, DateTime dataFim) 
         {
             

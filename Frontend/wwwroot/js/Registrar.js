@@ -42,7 +42,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         btn.disabled = true;
         btn.classList.add('opacity-70', 'cursor-not-allowed');
 
-        await axios.post('https://localhost:7067/CriarUsuario', body, {
+        await axios.post('https://localhost:7067/Usuario/CriarUsuario', body, {
             headers: { 'Content-Type': 'application/json' }
         });
 

@@ -32,7 +32,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         btn.disabled = true;
         btn.classList.add('opacity-70', 'cursor-not-allowed');
 
-        const res = await axios.post('https://localhost:7067/VerificarUsuario', body, {
+        const res = await axios.post('https://localhost:7067/Usuario/VerificarUsuario', body, {
             headers: { 'Content-Type': 'application/json' }
         });
 

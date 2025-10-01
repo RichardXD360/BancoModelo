@@ -5,6 +5,7 @@ namespace Shared.Models
 
     public class TransacaoDTO
     {
+        public int TransacaoId { get; set; }
         public string? Descricao { get; set; }
         [Required]
         public decimal? Valor { get; set; }

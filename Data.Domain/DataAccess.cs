@@ -80,6 +80,7 @@ namespace Data.Domain
                 */
             }
         }
+        #region Verificações de Credenciais
         public ResultadoRetornoUsuarioId VerificarUsuario(UsuarioLoginDTC usuario)
         {
             ResultadoRetornoUsuarioId resultadoRetorno = new ResultadoRetornoUsuarioId();
@@ -236,70 +237,7 @@ namespace Data.Domain
             }
             return resultadoRetorno;
         }
-        public ResultadoRetorno CriarUsuario(UsuarioDTC usuario)
-        {
-            ResultadoRetorno retorno = new ResultadoRetorno();
-            retorno.Sucesso = false;
-            try
-            {
-                using var conn = new SqliteConnection(connectionString);
-                conn.Open();
-                using var transaction = conn.BeginTransaction();
-
-                using var cmdCriarUsuario = conn.CreateCommand();
-                cmdCriarUsuario.Transaction = transaction;
-
-                using var cmdCriarUsuarioSaldo = conn.CreateCommand();
-                cmdCriarUsuarioSaldo.Transaction = transaction;
-
-                using var cmdIdUsuario = conn.CreateCommand();
-                cmdIdUsuario.Transaction = transaction;
-
-                cmdCriarUsuario.CommandText = @"INSERT INTO USUARIO
-                (NOME, LOGIN, CPF, AGENCIAID)
-                VALUES (@nome, @login, @cpf, @agenciaid)";
-                cmdCriarUsuario.Parameters.AddWithValue("@cpf", usuario.Cpf);
-                cmdCriarUsuario.Parameters.AddWithValue("@nome", usuario.Nome);
-                cmdCriarUsuario.Parameters.AddWithValue("@login", usuario.Login);
-                cmdCriarUsuario.Parameters.AddWithValue("@agenciaid", usuario.AgenciaId);
-                cmdCriarUsuario.ExecuteNonQuery();
-
-                cmdIdUsuario.CommandText = @"
-                SELECT ID
-                FROM USUARIO
-                WHERE CPF = @cpf";
-                cmdIdUsuario.Parameters.AddWithValue("@cpf", usuario.Cpf);
-                int usuarioId = Convert.ToInt32(cmdIdUsuario.ExecuteScalar()); //ExecuteScalar faz a consulta e já retorna o resultado
-
-                cmdCriarUsuarioSaldo.CommandText = @"INSERT INTO USUARIO_SALDO
-                (SALDO, USUARIOID, DATAULTIMATRANSACAO)
-                VALUES (0, @usuarioid, NULL)";
-                cmdCriarUsuarioSaldo.Parameters.AddWithValue("@usuarioid", usuarioId);
-
-                cmdCriarUsuarioSaldo.ExecuteNonQuery();
-
-                transaction.Commit();
-
-                retorno.Mensagem = "Sucesso ao criar usuário";
-                retorno.Sucesso = true;
-
-                return retorno;
-            }
-            catch (SqliteException ex)
-            {
-                retorno.Mensagem = $"Erro de banco de dados: {ex}";
-            }
-            catch(ArgumentException ex)
-            {
-                retorno.Mensagem = $"Erro: {ex.ParamName} - {ex.Message}";
-            }
-            catch(Exception ex)
-            {
-                retorno.Mensagem = $"Erro: {ex.Message}";
-            }
-            
-            return retorno;
-        }
+        #endregion
         public ResultadoRetorno EfetuarTransacao(TransacaoDTO transacao, int usuarioRecebedorId)
         {
             ResultadoRetorno retorno = new ResultadoRetorno();
@@ -358,6 +296,38 @@ namespace Data.Domain
             }
             return retorno;
         }
+
+        public TransacaoDTO RetornarTransacao(int transacaoId)
+        {
+            TransacaoDTO transacao =  new TransacaoDTO();
+            try
+            {
+                using var conn = new SqliteConnection(connectionString);
+                conn.Open();
+                using var cmdSelectTransacao = conn.CreateCommand();
+                cmdSelectTransacao.CommandText = @"
+                SELECT DESCRICAO, VALOR, USUARIOID, USUARIORECEBEDORID, DATATRANSACAO, TIPOTRANSACAOID
+                FROM TRANSACAO
+                WHERE ID = @id";
+                cmdSelectTransacao.Parameters.AddWithValue("@id", transacaoId);
+                var reader = cmdSelectTransacao.ExecuteReader();
+                while (reader.Read())
+                {
+                    transacao.Descricao = reader.GetString(0);
+                    transacao.Valor     = reader.GetInt32(1);
+                    transacao.UsuarioId = reader.GetInt32(2);
+                    transacao.UsuarioRecebedorId = reader.GetInt32(3);
+                    transacao.UsuarioRecebedorCnpj = reader.GetString(4);
+                    transacao.DataTransacao = Convert.ToDateTime(reader.GetString(5));
+                    transacao.TipoTransacao = Enum.Parse<EnumTipoTransacao>(reader.GetString(6));
+                }
+                return transacao;
+            }
+            catch
+            {
+                return transacao;
+            }
+        }
         public int VerificarSaldo(int usuarioId)
         {
             try
@@ -381,6 +351,72 @@ namespace Data.Domain
             {
                 return 0;
             }
+        }
+
+        #region Usuario
+        public ResultadoRetorno CriarUsuario(UsuarioDTC usuario)
+        {
+            ResultadoRetorno retorno = new ResultadoRetorno();
+            retorno.Sucesso = false;
+            try
+            {
+                using var conn = new SqliteConnection(connectionString);
+                conn.Open();
+                using var transaction = conn.BeginTransaction();
+
+                using var cmdCriarUsuario = conn.CreateCommand();
+                cmdCriarUsuario.Transaction = transaction;
+
+                using var cmdCriarUsuarioSaldo = conn.CreateCommand();
+                cmdCriarUsuarioSaldo.Transaction = transaction;
+
+                using var cmdIdUsuario = conn.CreateCommand();
+                cmdIdUsuario.Transaction = transaction;
+
+                cmdCriarUsuario.CommandText = @"INSERT INTO USUARIO
+                (NOME, LOGIN, CPF, AGENCIAID)
+                VALUES (@nome, @login, @cpf, @agenciaid)";
+                cmdCriarUsuario.Parameters.AddWithValue("@cpf", usuario.Cpf);
+                cmdCriarUsuario.Parameters.AddWithValue("@nome", usuario.Nome);
+                cmdCriarUsuario.Parameters.AddWithValue("@login", usuario.Login);
+                cmdCriarUsuario.Parameters.AddWithValue("@agenciaid", usuario.AgenciaId);
+                cmdCriarUsuario.ExecuteNonQuery();
+
+                cmdIdUsuario.CommandText = @"
+                SELECT ID
+                FROM USUARIO
+                WHERE CPF = @cpf";
+                cmdIdUsuario.Parameters.AddWithValue("@cpf", usuario.Cpf);
+                int usuarioId = Convert.ToInt32(cmdIdUsuario.ExecuteScalar()); //ExecuteScalar faz a consulta e já retorna o resultado
+
+                cmdCriarUsuarioSaldo.CommandText = @"INSERT INTO USUARIO_SALDO
+                (SALDO, USUARIOID, DATAULTIMATRANSACAO)
+                VALUES (0, @usuarioid, NULL)";
+                cmdCriarUsuarioSaldo.Parameters.AddWithValue("@usuarioid", usuarioId);
+
+                cmdCriarUsuarioSaldo.ExecuteNonQuery();
+
+                transaction.Commit();
+
+                retorno.Mensagem = "Sucesso ao criar usuário";
+                retorno.Sucesso = true;
+
+                return retorno;
+            }
+            catch (SqliteException ex)
+            {
+                retorno.Mensagem = $"Erro de banco de dados: {ex}";
+            }
+            catch (ArgumentException ex)
+            {
+                retorno.Mensagem = $"Erro: {ex.ParamName} - {ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                retorno.Mensagem = $"Erro: {ex.Message}";
+            }
+
+            return retorno;
         }
         public DadosUsuario DetalhesUsuario(int usuarioId)
         {
@@ -408,7 +444,7 @@ namespace Data.Domain
 
                 using var cmdSelectDetalhesTransacaoUsuario = conn.CreateCommand();
                 cmdSelectDetalhesTransacaoUsuario.CommandText = @"
-                SELECT DESCRICAO, VALOR, USUARIOID, USUARIORECEBEDORID, TIPOTRANSACAOID, DATATRANSACAO
+                SELECT ID, DESCRICAO, VALOR, USUARIOID, USUARIORECEBEDORID, TIPOTRANSACAOID, DATATRANSACAO
                 FROM TRANSACAO
                 WHERE USUARIOID = @id";
                 cmdSelectDetalhesTransacaoUsuario.Transaction = transaction;
@@ -418,12 +454,13 @@ namespace Data.Domain
                 while (reader2.Read()) {
                     transacoes.Add(new TransacaoDTO()
                     {
-                        Descricao = reader2.GetString(0),
-                        Valor = reader2.GetInt32(1),
-                        UsuarioId = reader2.GetInt32(2),
-                        UsuarioRecebedorId = reader2.GetInt32(3),
-                        TipoTransacao = (EnumTipoTransacao)reader2.GetInt32(4),
-                        DataTransacao = reader2.GetDateTime(5)
+                        TransacaoId = reader2.GetInt32(0),
+                        Descricao = reader2.GetString(1),
+                        Valor = reader2.GetInt32(2),
+                        UsuarioId = reader2.GetInt32(3),
+                        UsuarioRecebedorId = reader2.GetInt32(4),
+                        TipoTransacao = (EnumTipoTransacao)reader2.GetInt32(5),
+                        DataTransacao = reader2.GetDateTime(6)
                     });
                 }
                 dadosUsuario.Transacao = transacoes;
@@ -489,5 +526,6 @@ namespace Data.Domain
                 throw new Exception();
             }
         }
+        #endregion
     }
 }

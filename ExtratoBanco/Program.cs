@@ -1,5 +1,6 @@
 using Application;
 using Data.Domain;
+using GeradorPDF;
 using Model.Domain;
 using Service;
 
@@ -15,6 +16,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IData, DataAccess>();
 builder.Services.AddScoped<BancoVerify>();
 builder.Services.AddScoped<TransacaoRepo>();
+builder.Services.AddScoped<PdfService>();
 
 builder.Services.AddCors(cors =>
 {

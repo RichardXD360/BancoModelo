@@ -17,6 +17,7 @@ namespace Service
         {
             _data.AbrirConexao();
         }
+        #region Helpers
         private ResultadoRetornoHTTP CriarResultadoRetornoHTTP(string mensagem, bool sucesso, int statusCode)
         {
             return new ResultadoRetornoHTTP
@@ -36,6 +37,8 @@ namespace Service
                 UsuarioId = usuarioId
             };
         }
+        #endregion
+        #region Validação Transacao
         public ResultadoRetornoHTTP EfetuarTransacao(TransacaoDTO transacao)
         {
             if (transacao == null || transacao.Valor == 0 || transacao.DataTransacao == null)
@@ -75,6 +78,18 @@ namespace Service
             ResultadoRetorno retorno = _data.EfetuarTransacao(transacao, validarUsuarioRecebedorCnpj);
             return CriarResultadoRetornoHTTP(retorno.Mensagem, retorno.Sucesso, 200);
         }
+
+        public TransacaoDTO RetornarTransacao(int transacaoId)
+        {
+            if (transacaoId <= 0)
+            {
+                return null;
+            };
+            TransacaoDTO transacao = _data.RetornarTransacao(transacaoId);
+            return transacao;
+        }
+        #endregion
+        #region Validação Usuario
         public ResultadoRetornoUsuarioId ValidarUsuario(UsuarioLoginDTC usuario)
         {
             if (usuario == null || string.IsNullOrEmpty(usuario.Login))
@@ -120,5 +135,6 @@ namespace Service
             DadosUsuario retorno = _data.DetalhesUsuario(usuarioId);
             return retorno;
         }
+        #endregion
     }
 }

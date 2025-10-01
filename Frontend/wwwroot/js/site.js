@@ -41,7 +41,7 @@ let extratoData = [];
 async function loadExtrato() {
     const id = usuarioId;
     try {
-        const res = await axios.get(`${apiBase}/DetalhesUsuario/${id}`);
+        const res = await axios.get(`${apiBase}/Usuario/DetalhesUsuario/${id}`);
         const payload = res.data;
         if (!payload || !payload.detalhesUsuario) {
             $('extrato-summary').textContent = 'Resposta inválida da API.';
@@ -69,7 +69,7 @@ function renderExtratoTable() {
     tbody.innerHTML = '';
     const rows = extratoData.filter(t => {
         if (filterText) {
-            const inText = (t.descricao || '').toLowerCase().includes(filterText) || (t.usuarioId || '').toString().includes(filterText) || (t.usuarioRecebedorId || '').toString().includes(filterText) || (t.valor || '').toString().includes(filterText);
+            const inText = (t.transacaoId || '') || (t.descricao || '').toLowerCase().includes(filterText) || (t.usuarioId || '').toString().includes(filterText) || (t.usuarioRecebedorId || '').toString().includes(filterText) || (t.valor || '').toString().includes(filterText);
             if (!inText) return false;
         }
         if (start && t.dataTransacao < start) return false;
@@ -89,6 +89,10 @@ function renderExtratoTable() {
         const tr = document.createElement('tr');
         tr.className = 'border-t';
         tr.innerHTML = `
+              <td class="px-3 py-2"> <button id="btnGerarComprovante" onClick=GerarComprovante(${t.transacaoId}) type="submit"
+                        class="w-full inline-flex justify-center items-center gap-2 px-2 py-3 rounded-lg font-medium text-white bg-purple-600 hover:bg-purple-700 focus-ring">
+                    Baixar Comprovante
+                </button>  </td>
               <td class="px-3 py-2">${formatDate(t.dataTransacao)}</td>
               <td class="px-3 py-2">${t.descricao || '-'}</td>
               <td class="px-3 py-2">${formatCurrency(t.valor)}</td>
@@ -97,6 +101,20 @@ function renderExtratoTable() {
               <td class="px-3 py-2">${t.usuarioRecebedorId ?? '-'}</td>
             `;
         tbody.appendChild(tr);
+    }
+}
+
+async function GerarComprovante(transacaoId) {
+    try {
+        const res = await axios.get(`${apiBase}/Transacao/${transacaoId}/GerarComprovante`);
+        const basePdf = res.data;
+
+        const link = document.createElement("a");
+        link.href = "data:application/pdf;base64," + basePdf;
+        link.download = "bf_comprovante.pdf";
+        link.click();
+    } catch(err) {
+        
     }
 }
 
@@ -133,7 +151,7 @@ $('btn-send-tx').addEventListener('click', async () => {
 
     $('tx-result').textContent = 'Enviando...';
     try {
-        const res = await axios.post(`${apiBase}/EfetuarTransacao`, payload);
+        const res = await axios.post(`${apiBase}/Transacao/EfetuarTransacao`, payload);
         $('tx-result').innerHTML = `<span class="text-green-600 dark:text-green-400">Sucesso: ${JSON.stringify(res.data.mensagem)}</span>`;
         await loadExtrato();
     } catch (err) {
